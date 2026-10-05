@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>A Little World of Us</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;600;700&family=Cinzel:wght@400;500;600;700&family=Dancing+Script:wght@500;600;700&family=Great+Vibes&family=Montserrat:ital,wght@0,200;0,300;0,400;0,500;0,600;1,300&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ==========================================
+       CSS VARIABLES & GLOBAL RESETS
+       ========================================== */
+    :root {
+      --bg-black: #050307;
+      --bg-dark-charcoal: #0c0810;
+      --burgundy-deep: #2d0812;
+      --burgundy-main: #580c1f;
+      --burgundy-bright: #8a1329;
+      --wine-red: #4a0413;
+      --gold-antique: #d4af37;
+      --gold-champagne: #f3e5ab;
+      --rose-gold: #b76e79;
+      --cream-paper: #f7f3e9;
+      --ivory-white: #faf8f5;
+      --ink-burgundy: #3b0610;
+      --text-gold-light: #f5e7c6;
+      --text-muted: #a698a8;
+      
+      --shadow-burgundy: 0 0 25px rgba(138, 19, 41, 0.35);
+      --shadow-gold: 0 0 15px rgba(212, 175, 55, 0.3);
+      --glow-red: 0 0 35px rgba(88, 12, 31, 0.6);
+      
+      --font-heading: 'Cinzel', 'Playfair Display', serif;
+      --font-fancy-heading: 'Cinzel Decorative', 'Cinzel', serif;
+      --font-script: 'Great Vibes', 'Dancing Script', cursive;
+      --font-body: 'Montserrat', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-black);
+      color: var(--text-gold-light);
+      font-family: var(--font-body);
+      font-size: 14px;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(5, 3, 7, 0.8);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--burgundy-main);
+      border-radius: 3px;
+      border: 1px solid var(--gold-antique);
+    }
+
+    /* Dynamic Canvas Layer */
+    #universe-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Ambient Music Floating Toggle */
+    .audio-control-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      background: rgba(12, 8, 16, 0.85);
+      border: 1px solid var(--gold-antique);
+      color: var(--gold-champagne);
+      padding: 8px 16px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-family: var(--font-heading);
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow-gold);
+      backdrop-filter: blur(5px);
+      transition: all 0.3s ease;
+    }
+    .audio-control-btn:hover {
+      background: var(--burgundy-main);
+      box-shadow: var(--shadow-burgundy);
+      transform: translateY(-2px);
+    }
+
+    /* Screen Container Framework */
+    .app-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+    .app-screen.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Common UI Components */
+    .btn-romantic {
+      background: linear-gradient(135deg, var(--burgundy-main), var(--burgundy-deep));
+      border: 1px solid var(--gold-antique);
+      color: var(--gold-champagne);
+      padding: 12px 28px;
+      border-radius: 30px;
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: var(--shadow-burgundy);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-romantic:hover {
+      background: linear-gradient(135deg, var(--burgundy-bright), var(--burgundy-main));
+      border-color: var(--gold-champagne);
+      box-shadow: var(--glow-red), var(--shadow-gold);
+      transform: translateY(-3px) scale(1.02);
+    }
+    .btn-romantic::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(243, 229, 171, 0.2), transparent);
+      transform: rotate(45deg) translateY(-100%);
+      transition: transform 0.6s ease;
+    }
+    .btn-romantic:hover::after {
+      transform: rotate(45deg) translateY(100%);
+    }
+
+    .back-btn {
+      position: sticky;
+      top: 10px;
+      left: 0px;
+      z-index: 100;
+      align-self: flex-start;
+      margin-bottom: 20px;
+      background: rgba(12, 8, 16, 0.9);
+      border: 1px solid var(--gold-antique);
+      color: var(--gold-champagne);
+      padding: 8px 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: var(--font-heading);
+      font-size: 0.8rem;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      transition: all 0.3s ease;
+    }
+    .back-btn:hover {
+      background: var(--burgundy-main);
+      transform: translateX(-3px);
+    }
+
+    .section-header {
+      text-align: center;
+      margin: 20px 0 30px;
+      position: relative;
+    }
+    .section-header h2 {
+      font-family: var(--font-fancy-heading);
+      font-size: 2.2rem;
+      color: var(--gold-champagne);
+      text-shadow: 0 0 10px rgba(212, 175, 55, 0.5), 0 0 20px rgba(138, 19, 41, 0.8);
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
+    .section-header p {
+      font-family: var(--font-script);
+      font-size: 1.6rem;
+      color: var(--rose-gold);
+    }
+
+    /* Paper/Scrapbook Card Base */
+    .scrapbook-paper {
+      background: var(--cream-paper);
+      color: var(--ink-burgundy);
+      padding: 25px;
+      border-radius: 4px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 50px rgba(88, 12, 31, 0.1);
+      position: relative;
+      font-family: var(--font-script);
+      font-size: 1.4rem;
+      line-height: 1.6;
+      border: 1px solid #e0d0b0;
+    }
+    .scrapbook-paper::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 25px;
+      background: rgba(243, 229, 171, 0.3);
+      border: 1px dashed rgba(212, 175, 55, 0.5);
+      backdrop-filter: blur(2px);
+    }
+
+    /* ==========================================
+       SCREEN 0: LOCK SCREEN
+       ========================================== */
+    #screen-lock {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: radial-gradient(circle at center, var(--burgundy-deep) 0%, var(--bg-black) 70%);
+    }
+    .lock-box {
+      background: rgba(12, 8, 16, 0.85);
+      border: 1px solid var(--gold-antique);
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: var(--glow-red), var(--shadow-gold);
+      backdrop-filter: blur(10px);
+      max-width: 420px;
+      width: 100%;
+      animation: floatBreath 6s ease-in-out infinite;
+    }
+    @keyframes floatBreath {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .lock-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      text-shadow: var(--shadow-gold);
+      display: inline-block;
+    }
+    .lock-title {
+      font-family: var(--font-fancy-heading);
+      font-size: 1.8rem;
+      color: var(--gold-champagne);
+      margin-bottom: 5px;
+    }
+    .lock-subtitle {
+      font-family: var(--font-script);
+      font-size: 1.5rem;
+      color: var(--rose-gold);
+      margin-bottom: 25px;
+    }
+    .lock-input {
+      width: 100%;
+      padding: 12px 20px;
+      background: rgba(5, 3, 7, 0.9);
+      border: 1px solid var(--burgundy-bright);
+      border-radius: 25px;
+      color: var(--gold-champagne);
+      font-family: var(--font-heading);
+      text-align: center;
+      font-size: 1rem;
+      margin-bottom: 15px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    .lock-input:focus {
+      border-color: var(--gold-antique);
+      box-shadow: var(--shadow-gold);
+    }
+    .lock-error {
+      color: #e74c3c;
+      font-size: 0.85rem;
+      margin-top: 10px;
+      min-height: 20px;
+      font-family: var(--font-body);
+    }
+
+    /* ==========================================
+       SCREEN 1: CINEMATIC ENTRANCE
+       ========================================== */
+    #screen-entrance {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .entrance-content h1 {
+      font-family: var(--font-fancy-heading);
+      font-size: 3.5rem;
+      color: var(--gold-champagne);
+      text-shadow: 0 0 20px rgba(212, 175, 55, 0.6), 0 0 40px rgba(88, 12, 31, 0.9);
+      margin-bottom: 15px;
+      letter-spacing: 4px;
+    }
+    .entrance-content p {
+      font-family: var(--font-script);
+      font-size: 2.2rem;
+      color: var(--rose-gold);
+      margin-bottom: 40px;
+    }
+
+    /* ==========================================
+       SCREEN 2: OUR WORLD (MAIN HUB)
+       ========================================== */
+    .hub-header {
+      text-align: center;
+      margin-top: 20px;
+      margin-bottom: 30px;
+    }
+    .hub-header h1 {
+      font-family: var(--font-fancy-heading);
+      font-size: 2.8rem;
+      color: var(--gold-champagne);
+      text-shadow: var(--shadow-gold);
+    }
+    .hub-header p {
+      font-family: var(--font-script);
+      font-size: 1.8rem;
+      color: var(--rose-gold);
+    }
+
+    .rooms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 25px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      padding-bottom: 40px;
+    }
+
+    .room-portal {
+      height: 220px;
+      background: linear-gradient(145deg, rgba(20, 10, 25, 0.9), rgba(8, 4, 12, 0.95));
+      border: 1px solid var(--burgundy-bright);
+      border-radius: 15px;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+      transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .room-portal::before {
+      content: '';
+      position: absolute;
+      inset: 6px;
+      border: 1px dashed var(--gold-antique);
+      border-radius: 10px;
+      opacity: 0.4;
+      transition: opacity 0.3s ease;
+    }
+    .room-portal:hover {
+      transform: translateY(-8px) scale(1.03);
+      border-color: var(--gold-antique);
+      box-shadow: var(--glow-red), var(--shadow-gold);
+    }
+    .room-portal:hover::before {
+      opacity: 0.9;
+    }
+    .portal-icon {
+      font-size: 2.8rem;
+      margin-bottom: 12px;
+      text-shadow: var(--shadow-gold);
+      transition: transform 0.4s ease;
+    }
+    .room-portal:hover .portal-icon {
+      transform: scale(1.2) rotate(5deg);
+    }
+    .portal-title {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      color: var(--gold-champagne);
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+    .portal-desc {
+      font-family: var(--font-script);
+      font-size: 1.2rem;
+      color: var(--text-muted);
+    }
+
+    /* Secret Hidden Key Object on Hub */
+    #hub-secret-key {
+      position: absolute;
+      bottom: 15px;
+      right: 20px;
+      font-size: 1.2rem;
+      opacity: 0.3;
+      cursor: pointer;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    #hub-secret-key:hover {
+      opacity: 1;
+      transform: scale(1.3) rotate(15deg);
+    }
+
+    /* ==========================================
+       ROOM 1: 365 LITTLE NOTES
+       ========================================== */
+    .notes-container {
+      max-width: 650px;
+      margin: 0 auto;
+      width: 100%;
+      text-align: center;
+    }
+    .bottle-wrapper {
+      margin: 30px auto;
+      cursor: pointer;
+      display: inline-block;
+      transition: transform 0.3s ease;
+    }
+    .bottle-wrapper:hover {
+      transform: scale(1.05);
+    }
+    .bottle-svg {
+      width: 140px;
+      height: 180px;
+      filter: drop-shadow(var(--glow-red));
+    }
+    .archive-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 15px;
+      margin-top: 40px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 10px;
+      background: rgba(12, 8, 16, 0.6);
+      border-radius: 10px;
+      border: 1px solid var(--burgundy-deep);
+    }
+    .archive-item {
+      background: rgba(88, 12, 31, 0.3);
+      border: 1px solid var(--gold-antique);
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: var(--font-heading);
+      font-size: 0.8rem;
+      transition: all 0.3s ease;
+    }
+    .archive-item:hover {
+      background: var(--burgundy-main);
+      transform: translateY(-2px);
+    }
+
+    /* ==========================================
+       ROOM 2: OUR TRACKER
+       ========================================== */
+    .tracker-container {
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .progress-box {
+      background: rgba(12, 8, 16, 0.8);
+      border: 1px solid var(--burgundy-bright);
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: var(--shadow-burgundy);
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .progress-bar-bg {
+      width: 100%;
+      height: 18px;
+      background: rgba(5, 3, 7, 0.9);
+      border-radius: 10px;
+      border: 1px solid var(--gold-antique);
+      overflow: hidden;
+      margin: 15px 0;
+      position: relative;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 10.1%; /* Day 37 of 365 default */
+      background: linear-gradient(90deg, var(--burgundy-bright), var(--gold-antique));
+      box-shadow: 0 0 10px var(--gold-antique);
+      transition: width 1s ease;
+    }
+    .timeline-path {
+      position: relative;
+      padding-left: 30px;
+      border-left: 2px dashed var(--burgundy-bright);
+      margin-left: 20px;
+    }
+    .timeline-node {
+      position: relative;
+      margin-bottom: 30px;
+    }
+    .timeline-node::before {
+      content: '✦';
+      position: absolute;
+      left: -39px;
+      top: 0;
+      width: 18px;
+      height: 18px;
+      color: var(--gold-champagne);
+      background: var(--bg-black);
+      border-radius: 50%;
+      text-align: center;
+      line-height: 18px;
+      font-size: 0.8rem;
+      box-shadow: var(--shadow-gold);
+    }
+
+    /* ==========================================
+       ROOM 3: VOICE NOTES
+       ========================================== */
+    .voice-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .voice-card {
+      background: rgba(20, 10, 25, 0.85);
+      border: 1px solid var(--gold-antique);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+    .voice-card:hover {
+      background: var(--burgundy-deep);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-burgundy);
+    }
+    .waveform-visualizer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      height: 40px;
+      margin: 15px 0;
+    }
+    .wave-bar {
+      width: 4px;
+      height: 10px;
+      background: var(--gold-antique);
+      border-radius: 2px;
+      transition: height 0.2s ease;
+    }
+    .voice-card.playing .wave-bar {
+      animation: wavePulse 0.8s infinite ease-in-out alternate;
+    }
+    @keyframes wavePulse {
+      0% { height: 8px; }
+      100% { height: 35px; background: var(--rose-gold); }
+    }
+
+    /* ==========================================
+       ROOM 4: OUR MEMORIES (SCRAPBOOK)
+       ========================================== */
+    .memories-masonry {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .polaroid-card {
+      background: #fdfbf7;
+      padding: 12px 12px 25px 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+      border-radius: 2px;
+      transform: rotate(calc(var(--rotation, 0) * 1deg));
+      transition: all 0.4s ease;
+      cursor: pointer;
+      position: relative;
+    }
+    .polaroid-card:hover {
+      transform: scale(1.05) rotate(0deg) !important;
+      z-index: 20;
+      box-shadow: var(--glow-red);
+    }
+    .polaroid-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: #111;
+      border: 1px solid #ddd;
+    }
+    .polaroid-caption {
+      font-family: var(--font-script);
+      color: var(--ink-burgundy);
+      font-size: 1.5rem;
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    /* ==========================================
+       ROOM 5: OPEN WHEN…
+       ========================================== */
+    .envelopes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 25px;
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .envelope-card {
+      background: linear-gradient(135deg, #3a0813, #1a0308);
+      border: 1px solid var(--gold-antique);
+      border-radius: 8px;
+      padding: 30px 20px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+      transition: all 0.3s ease;
+    }
+    .envelope-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-gold), var(--glow-red);
+    }
+    .wax-seal {
+      width: 45px;
+      height: 45px;
+      background: var(--burgundy-bright);
+      border: 2px solid var(--gold-antique);
+      border-radius: 50%;
+      margin: 0 auto 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold-champagne);
+      font-family: var(--font-fancy-heading);
+      font-weight: bold;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+    }
+
+    /* ==========================================
+       ROOM 6: OUR STORY (3 VINTAGE BOOKS)
+       ========================================== */
+    .bookshelf-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      max-width: 1000px;
+      margin: 40px auto;
+      width: 100%;
+    }
+    .story-book {
+      width: 240px;
+      height: 340px;
+      border-radius: 6px 12px 12px 6px;
+      position: relative;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: all 0.5s ease;
+      box-shadow: -10px 10px 25px rgba(0,0,0,0.9), 0 0 15px rgba(88, 12, 31, 0.4);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 25px;
+      text-align: center;
+      border-left: 12px solid #110306;
+    }
+    .story-book:hover {
+      transform: translateY(-12px) rotateY(-10deg);
+      box-shadow: -15px 15px 35px rgba(0,0,0,0.9), var(--glow-red);
+    }
+    .book-1 { background: linear-gradient(135deg, #4a0413, #1c0106); border: 2px solid var(--gold-antique); }
+    .book-2 { background: linear-gradient(135deg, #1c0826, #09020f); border: 2px solid var(--rose-gold); }
+    .book-3 { background: linear-gradient(135deg, #091b2a, #030a12); border: 2px solid var(--gold-champagne); }
+
+    .book-title {
+      font-family: var(--font-fancy-heading);
+      font-size: 1.4rem;
+      color: var(--gold-champagne);
+      margin-bottom: 10px;
+    }
+    .book-subtitle {
+      font-family: var(--font-script);
+      font-size: 1.3rem;
+      color: var(--text-muted);
+    }
+
+    .book-reader {
+      max-width: 750px;
+      margin: 0 auto;
+      width: 100%;
+      display: none;
+    }
+    .book-page-content {
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* ==========================================
+       ROOM 7: OUR LITTLE CORNER (PLAYROOM)
+       ========================================== */
+    .corner-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .game-card {
+      background: rgba(18, 9, 24, 0.85);
+      border: 1px solid var(--burgundy-bright);
+      border-radius: 12px;
+      padding: 25px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .game-card:hover {
+      background: var(--burgundy-deep);
+      border-color: var(--gold-antique);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-gold);
+    }
+    #corner-secret-planet {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      font-size: 1.2rem;
+      opacity: 0.3;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+    }
+    #corner-secret-planet:hover {
+      opacity: 1;
+      transform: scale(1.3);
+    }
+
+    /* ==========================================
+       ROOM 8: BIRTHDAY ROOM (18TH FINALE)
+       ========================================== */
+    .bday-container {
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* Realistic Pinterest 18th Birthday Cake */
+    .cake-display {
+      margin: 30px auto;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .pinterest-cake {
+      width: 220px;
+      height: 200px;
+      background: linear-gradient(to bottom, #1a080c, #2d0a12);
+      border-radius: 15px 15px 10px 10px;
+      position: relative;
+      border: 2px solid var(--gold-antique);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.9), var(--glow-red);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding-bottom: 20px;
+    }
+    .cake-icing {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      height: 40px;
+      background: var(--burgundy-bright);
+      border-radius: 13px 13px 20px 20px;
+      box-shadow: inset 0 -4px 8px rgba(0,0,0,0.5);
+    }
+    .cake-number-18 {
+      font-family: var(--font-fancy-heading);
+      font-size: 3.5rem;
+      color: var(--gold-champagne);
+      text-shadow: 0 0 15px rgba(212, 175, 55, 0.8);
+      z-index: 2;
+    }
+    .candle-flame {
+      width: 16px;
+      height: 24px;
+      background: radial-gradient(circle, #fff, #ffaa00, #ff0000);
+      border-radius: 50% 50% 20% 20%;
+      position: absolute;
+      top: -30px;
+      box-shadow: 0 0 20px #ffaa00, 0 0 40px #ffaa00;
+      animation: flicker 0.1s infinite alternate;
+      cursor: pointer;
+    }
+    .candle-flame.blown {
+      display: none;
+    }
+    @keyframes flicker {
+      0% { transform: scale(1) rotate(-2deg); }
+      100% { transform: scale(1.1) rotate(2deg); }
+    }
+
+    .gift-boxes-wrapper {
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+      flex-wrap: wrap;
+      margin-top: 40px;
+    }
+    .gift-box-card {
+      width: 220px;
+      background: linear-gradient(145deg, #2d0812, #100306);
+      border: 1px solid var(--gold-antique);
+      border-radius: 15px;
+      padding: 25px 15px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+      transition: all 0.4s ease;
+    }
+    .gift-box-card:hover {
+      transform: translateY(-8px) scale(1.03);
+      box-shadow: var(--shadow-gold), var(--glow-red);
+    }
+
+    /* ==========================================
+       MODALS & OVERLAYS
+       ========================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(5, 3, 7, 0.92);
+      backdrop-filter: blur(8px);
+      z-index: 10000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      max-width: 600px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .modal-close-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 1.8rem;
+      color: var(--ink-burgundy);
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      .entrance-content h1 { font-size: 2.2rem; }
+      .entrance-content p { font-size: 1.6rem; }
+      .section-header h2 { font-size: 1.7rem; }
+      .rooms-grid { grid-template-columns: 1fr; }
+      .bookshelf-container { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- UNIVERSAL Dynamic Background Canvas -->
+  <canvas id="universe-canvas"></canvas>
+
+  <!-- AMBIENT AUDIO TOGGLE -->
+  <button class="audio-control-btn" id="audio-toggle-btn">
+    <span>♫</span> <span id="audio-status-text">Music Off</span>
+  </button>
+  <audio id="bg-ambient-audio" loop preload="auto">
+    <!-- Replace with your choice of soft guitar/piano instrumental track -->
+    <source src="audio/ambient-romantic.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- ==========================================
+       SCREEN 0: PRIVATE LOCK SCREEN
+       ========================================== -->
+  <div class="app-screen active" id="screen-lock">
+    <div class="lock-box">
+      <div class="lock-icon">🔐</div>
+      <div class="lock-title">PRIVATE • JUST FOR YOU</div>
+      <div style="font-family: var(--font-fancy-heading); color: var(--gold-champagne); font-size: 1.3rem; margin-bottom: 5px;">
+        A Little World of Us
+      </div>
+      <div class="lock-subtitle">“This little world is private. Enter the password to continue.”</div>
+      
+      <input type="password" id="lock-pass-input" class="lock-input" placeholder="Enter password..." />
+      <button class="btn-romantic" id="lock-unlock-btn" style="width: 100%;">
+        ♡ Unlock Our World
+      </button>
+      <div class="lock-error" id="lock-error-msg"></div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       SCREEN 1: CINEMATIC ENTRANCE
+       ========================================== -->
+  <div class="app-screen" id="screen-entrance">
+    <div class="entrance-content">
+      <div style="font-size: 2.5rem; margin-bottom: 10px;" id="entrance-star-clue">✦</div>
+      <h1>A Little World of Us</h1>
+      <p>“A tiny world made from all the little pieces of us.”</p>
+      <button class="btn-romantic" id="entrance-enter-btn">
+        ♡ Enter Our World
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       SCREEN 2: OUR WORLD (MAIN HUB)
+       ========================================== -->
+  <div class="app-screen" id="screen-hub">
+    <div class="hub-header">
+      <h1>A Little World of Us</h1>
+      <p>“Dive into a little piece of our world ♡”</p>
+    </div>
+
+    <div class="rooms-grid">
+      <div class="room-portal" onclick="navigateTo('notes')">
+        <div class="portal-icon">💌</div>
+        <div class="portal-title">365 Little Notes</div>
+        <div class="portal-desc">One little piece of us, every day</div>
+      </div>
+      
+      <div class="room-portal" onclick="navigateTo('tracker')">
+        <div class="portal-icon">📅</div>
+        <div class="portal-title">Our Tracker</div>
+        <div class="portal-desc">A tiny record of our days</div>
+      </div>
+
+      <div class="room-portal" onclick="navigateTo('voice')">
+        <div class="portal-icon">🎙️</div>
+        <div class="portal-title">Voice Notes</div>
+        <div class="portal-desc">Things that sound better in my voice</div>
+      </div>
+
+      <div class="room-portal" onclick="navigateTo('memories')">
+        <div class="portal-icon">📸</div>
+        <div class="portal-title">Our Memories</div>
+        <div class="portal-desc">Little moments that became pieces of us</div>
+      </div>
+
+      <div class="room-portal" onclick="navigateTo('openwhen')">
+        <div class="portal-icon">✉️</div>
+        <div class="portal-title">Open When…</div>
+        <div class="portal-desc">Letters for whenever you need them</div>
+      </div>
+
+      <div class="room-portal" onclick="navigateTo('story')">
+        <div class="portal-icon">🕰️</div>
+        <div class="portal-title">Our Story</div>
+        <div class="portal-desc">Three books. One little story ♡</div>
+      </div>
+
+      <div class="room-portal" onclick="navigateTo('corner')">
+        <div class="portal-icon">🎮</div>
+        <div class="portal-title">Our Little Corner</div>
+        <div class="portal-desc">Our private romantic playroom</div>
+      </div>
+
+      <div class="room-portal" onclick="navigateTo('birthday')" style="border-color: var(--gold-antique); background: linear-gradient(145deg, #3b0813, #120307);">
+        <div class="portal-icon">🎂</div>
+        <div class="portal-title" style="color: var(--gold-champagne);">Birthday Room</div>
+        <div class="portal-desc">The emotional 18th birthday room ♡</div>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin: 20px 0;">
+      <button class="back-btn" style="position: static;" onclick="lockWorld()">🔒 Lock World</button>
+    </div>
+
+    <!-- Hidden Physical Antique Key for Secret Room Clue Trail -->
+    <div id="hub-secret-key" onclick="triggerSecretRiddle()" title="A mysterious key...">🗝️</div>
+  </div>
+
+  <!-- ==========================================
+       ROOM 1: 365 LITTLE NOTES
+       ========================================== -->
+  <div class="app-screen" id="screen-room-notes">
+    <button class="back-btn" onclick="navigateTo('hub')">← Back to Our World</button>
+    <div class="section-header">
+      <h2>365 LITTLE NOTES</h2>
+      <p>“One little piece of us, every day.”</p>
+    </div>
+
+    <div class="notes-container">
+      <div style="font-family: var(--font-heading); color: var(--gold-champagne); font-size: 1.1rem; margin-bottom: 10px;" id="notes-day-indicator">
+        DAY 037 OF 365 ♡
+      </div>
+
+      <div class="bottle-wrapper" id="today-bottle-trigger">
+        <svg class="bottle-svg" viewBox="0 0 100 140">
+          <path d="M35,10 L65,10 L65,25 L75,35 L75,120 A10,10 0 0,1 65,130 L35,130 A10,10 0 0,1 25,120 L25,35 L35,25 Z" fill="rgba(88, 12, 31, 0.4)" stroke="#d4af37" stroke-width="2"/>
+          <rect x="32" y="2" width="36" height="8" rx="2" fill="#580c1f" stroke="#d4af37" stroke-width="1"/>
+          <path d="M35,60 C45,50 55,70 65,60" stroke="#b76e79" fill="none" stroke-width="1.5"/>
+          <text x="50" y="90" font-family="sans-serif" font-size="10" fill="#f3e5ab" text-anchor="middle">DAY 037</text>
+        </svg>
+        <div style="font-family: var(--font-script); color: var(--rose-gold); font-size: 1.4rem; margin-top: 10px;">
+          A little something for you
+        </div>
+        <button class="btn-romantic" style="margin-top: 15px;">OPEN TODAY’S NOTE</button>
+      </div>
+
+      <div style="margin-top: 50px;">
+        <h3 style="font-family: var(--font-heading); color: var(--gold-champagne); letter-spacing: 2px;">OUR LITTLE ARCHIVE ♡</h3>
+        <div class="archive-grid" id="notes-archive-container">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       ROOM 2: OUR TRACKER
+       ========================================== -->
+  <div class="app-screen" id="screen-room-tracker">
+    <button class="back-btn" onclick="navigateTo('hub')">← Back to Our World</button>
+    <div class="section-header">
+      <h2>OUR TRACKER</h2>
+      <p>“A tiny record of our days.”</p>
+    </div>
+
+    <div class="tracker-container">
+      <div class="progress-box">
+        <h3 style="font-family: var(--font-heading); color: var(--gold-champagne);">365 NOTES YEAR PROGRESS</h3>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="tracker-bar-fill"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-family: var(--font-heading); font-size: 0.85rem; color: var(--text-muted);">
+          <span>16 Jan 2027</span>
+          <span style="color: var(--gold-champagne);" id="tracker-current-day-str">Day 37 / 365</span>
+          <span>15 Jan 2028</span>
+        </div>
+      </div>
+
+      <div class="timeline-path" id="tracker-timeline-nodes">
+        <!-- Milestone nodes inserted dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       ROOM 3: VOICE NOTES
+       ========================================== -->
+  <div class="app-screen" id="screen-room-voice">
+    <button class="back-btn" onclick="navigateTo('hub')">← Back to Our World</button>
+    <div class="section-header">
+      <h2>A FEW THINGS I WANTED YOU TO HEAR 🎙️</h2>
+      <p>“Some things just sound better in my voice.”</p>
+    </div>
+
+    <div class="voice-grid" id="voice-cards-grid">
+      <!-- Voice Note Cards Inserted Dynamically -->
+    </div>
+  </div>
+
+  <!-- ==========================================
+       ROOM 4: OUR MEMORIES
+       ========================================== -->
+  <div class="app-screen" id="screen-room-memories">
+    <button class="back-btn" onclick="navigateTo('hub')">← Back to Our World</button>
+    <div class="section-header">
+      <h2>OUR MEMORIES</h2>
+      <p>“Little moments that became pieces of us.”</p>
+    </div>
+
+    <div class="memories-masonry" id="memories-grid-container">
+      <!-- Polaroid Memory Cards Inserted Dynamically -->
+    </div>
+  </div>
+
+  <!-- ==========================================
+       ROOM 5: OPEN WHEN…
+       ========================================== -->
+  <div class="app-screen" id="screen-room-openwhen">
+    <button class="back-btn" onclick="navigateTo('hub')">← Back to Our World</button>
+    <div class="section-header">
+      <h2>OPEN WHEN…</h2>
+      <p>“Envelopes stored for whenever you need them most.”</p>
+    </div>
+
+    <div class="envelopes-grid" id="openwhen-grid-container">
+      <!-- Envelope Cards Inserted Dynamically -->
+    </div>
+  </div>
+
+  <!-- ==========================================
+       ROOM 6: OUR STORY (3 VINTAGE BOOKS)
+       ========================================== -->
+  <div class="app-screen" id="screen-room-story">
+    <button class="back-btn" onclick="navigateTo('hub')">← Back to Our World</button>
+    <div class="section-header">
+      <h2>OUR STORY</h2>
+      <p>“Three books. One little story. ♡”</p>
+    </div>
+
+    <!-- BOOKSHELF DISPLAY -->
+    <div class="bookshelf-container" id="bookshelf-view">
+      <div class="story-book book-1" onclick="openBook(1)">
+        <div class="book-title">BOOK I</div>
+        <div style="font-family: var(--font-heading); color: var(--gold-champagne); font-size: 1rem; margin-bottom: 15px;">The Chapter That Found Us</div>
+        <div class="book-subtitle">How our story began...</div>
+      </div>
+
+      <div class="story-book book-2" onclick="openBook(2)">
+        <div class="book-title">BOOK II</div>
+        <div style="font-family: var(--font-heading); color: var(--gold-champagne); font-size: 1rem; margin-bottom: 15px;">The Place We Are Now</div>
+        <div class="book-subtitle">Our life right now...</div>
+      </div>
+
+      <div class="story-book book-3" onclick="openBook(3)">
+        <div class="book-title">BOOK III</div>
+        <div style="font-family: var(--font-heading); color: var(--gold-champagne); font-size: 1rem; margin-bottom: 15px;">My Delulu Version ✨</div>
+        <div class="book-subtitle">My imagination ♡</div>
+      </div>
+    </div>
+
+    <!-- ACTIVE BOOK READER -->
+    <div class="book-reader" id="book-reader-view">
+      <button class="back-btn" style="position: static; margin-bottom: 15px;" onclick="closeBook()">← Back to Bookshelf</button>
+      <div class="scrapbook-paper book-page-content" id="book-page-body">
+        <!-- Content inserted dynamically -->
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+        <button class="btn-romantic" id="book-prev-btn" onclick="changePage(-1)">← Previous</button>
+        <span style="font-family: var(--font-heading); color: var(--gold-champagne);" id="book-page-num">Page 1</span>
+        <button class="btn-romantic" id="book-next-btn" onclick="changePage(1)">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       ROOM 7: OUR LITTLE CORNER (PLAYROOM)
+       ========================================== -->
+  <div class="app-screen" id="screen-room-corner">
+    <button class="back-btn" onclick="navigateTo('hub')">← Back to Our World</button>
+    <div class="section-header">
+      <h2>OUR LITTLE CORNER</h2>
+      <p>“Our private romantic arcade & playroom.”</p>
+    </div>
+
+    <div class="corner-grid" id="games-grid-container">
+      <!-- Game & Interactive Cards Dynamically Generated -->
+    </div>
+
+    <!-- Hidden Secret Room Clue Object -->
+    <div id="corner-secret-planet" onclick="triggerPlanetClue()" title="A tiny strange planet...">🪐</div>
+  </div>
+
+  <!-- ==========================================
+       ROOM 8: BIRTHDAY ROOM (18TH FINALE)
+       ========================================== -->
+  <div class="app-screen" id="screen-room-birthday">
+    <button class="back-btn" onclick="navigateTo('hub')">← Back to Our World</button>
+    
+    <div class="bday-container">
+      <!-- STEP 1: BIRTHDAY REVEAL -->
+      <div id="bday-step-1">
+        <div class="section-header">
+          <h2>✦ THE FINAL ROOM ✦</h2>
+          <p style="font-size: 2rem;">HAPPY 18TH BIRTHDAY, BABYYY ♡</p>
+        </div>
+        <p style="font-family: var(--font-script); font-size: 1.8rem; color: var(--gold-champagne); margin-bottom: 30px;">
+          “Welcome to the deepest part of my little world.”
+        </p>
+        <button class="btn-romantic" onclick="startBirthdaySequence()">
+          ♡ Enter Your Birthday Room
+        </button>
+      </div>
+
+      <!-- STEP 2 & 3 & 4: CAKE & CANDLE INTERACTION -->
+      <div id="bday-step-cake" style="display: none;">
+        <div class="section-header">
+          <h2>MAKE A WISH</h2>
+          <p>“Close your eyes for a second… then blow the candle. ♡”</p>
+        </div>
+
+        <div class="cake-display">
+          <div class="candle-flame" id="cake-candle-flame" onclick="blowCandle()"></div>
+          <div class="pinterest-cake">
+            <div class="cake-icing"></div>
+            <div class="cake-number-18">18</div>
+          </div>
+        </div>
+
+        <div id="candle-controls" style="margin-top: 20px;">
+          <button class="btn-romantic" onclick="blowCandle()">♡ Blow The Candle</button>
+        </div>
+
+        <div id="cake-cut-controls" style="display: none; margin-top: 20px;">
+          <p style="font-family: var(--font-script); font-size: 1.8rem; color: var(--gold-champagne); margin-bottom: 15px;">Wish made. ♡ Now… it’s time for cake.</p>
+          <button class="btn-romantic" onclick="cutCake()">🎂 CUT THE CAKE</button>
+        </div>
+      </div>
+
+      <!-- STEP 5: FULL BIRTHDAY ROOM & 3 GIFTS -->
+      <div id="bday-step-full" style="display: none;">
+        <div class="section-header">
+          <h2>WELCOME TO YOUR 18TH. ♡</h2>
+          <p>“Everything I made for you.”</p>
+        </div>
+
+        <div class="gift-boxes-wrapper">
+          <div class="gift-box-card" onclick="openGiftModal('video')">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">🎥</div>
+            <div style="font-family: var(--font-heading); color: var(--gold-champagne); margin-bottom: 5px;">BIRTHDAY VIDEO</div>
+            <div style="font-family: var(--font-script); color: var(--text-muted);">A little something to watch</div>
+          </div>
+
+          <div class="gift-box-card" onclick="openGiftModal('letter')">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">💌</div>
+            <div style="font-family: var(--font-heading); color: var(--gold-champagne); margin-bottom: 5px;">BIRTHDAY MESSAGE</div>
+            <div style="font-family: var(--font-script); color: var(--text-muted);">Some things better written down</div>
+          </div>
+
+          <div class="gift-box-card" onclick="openGiftModal('audio')">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">🎙️️</div>
+            <div style="font-family: var(--font-heading); color: var(--gold-champagne); margin-bottom: 5px;">ONE LAST THING</div>
+            <div style="font-family: var(--font-script); color: var(--text-muted);">One more thing to hear</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 60px; padding: 30px; background: rgba(12, 8, 16, 0.8); border-radius: 15px; border: 1px solid var(--burgundy-bright);">
+          <div style="font-family: var(--font-heading); color: var(--gold-champagne); letter-spacing: 2px; margin-bottom: 10px;">
+            YOU MADE IT ALL THE WAY DOWN HERE. ♡
+          </div>
+          <p style="font-family: var(--font-script); font-size: 1.8rem; color: var(--rose-gold); margin-bottom: 15px;">
+            “Maybe that's what love is… something you keep discovering, the deeper you go.”
+          </p>
+          <div style="font-family: var(--font-fancy-heading); color: var(--gold-champagne); font-size: 1.2rem;">
+            A Little World of Us
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       HIDDEN SECRET ROOM
+       ========================================== -->
+  <div class="app-screen" id="screen-room-secret">
+    <button class="back-btn" onclick="navigateTo('hub')">← Back to Our World</button>
+    <div class="section-header">
+      <h2 style="color: var(--rose-gold);">THINGS I COULDN'T PUT ANYWHERE ELSE</h2>
+      <p>“The secret archive hidden at the deepest point of our universe.”</p>
+    </div>
+
+    <div style="max-width: 750px; margin: 0 auto; width: 100%;" class="scrapbook-paper">
+      <h3 style="font-family: var(--font-heading); color: var(--ink-burgundy); border-bottom: 1px stroke var(--burgundy-bright); padding-bottom: 5px; margin-bottom: 10px;">
+        ♡ Things I Never Said
+      </h3>
+      <p style="margin-bottom: 20px;">
+        There are tiny thoughts that cross my mind in quiet moments. Things about how safe I feel with you, how your laugh completely resets my worst days, and how I catch myself smiling at nothing just because you exist.
+      </p>
+
+      <h3 style="font-family: var(--font-heading); color: var(--ink-burgundy); border-bottom: 1px stroke var(--burgundy-bright); padding-bottom: 5px; margin-bottom: 10px;">
+        ♡ My Favourite Things About You
+      </h3>
+      <p style="margin-bottom: 20px;">
+        The way you get focused when you're working on something you love. The exact tone of your voice when you're sleepy. The gentle way you hold my world together without even trying.
+      </p>
+
+      <h3 style="font-family: var(--font-heading); color: var(--ink-burgundy); border-bottom: 1px stroke var(--burgundy-bright); padding-bottom: 5px; margin-bottom: 10px;">
+        ♡ The Random Files & 2 AM Thoughts
+      </h3>
+      <p style="margin-bottom: 20px;">
+        Late at night, when the rest of the world goes quiet, this universe is where I come to think about us. No filters, no overthinking—just pure, soft appreciation for us.
+      </p>
+
+      <div style="text-align: center; margin-top: 30px; font-family: var(--font-heading); font-size: 1rem; color: var(--burgundy-bright);">
+        Congratulations. You officially found the part of my little world that was hiding from you. ♡
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       UNIVERSAL MODAL OVERLAY
+       ========================================== -->
+  <div class="modal-overlay" id="universal-modal">
+    <div class="modal-card scrapbook-paper" id="modal-content-area">
+      <div class="modal-close-btn" onclick="closeModal()">×</div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       JAVASCRIPT ARCHITECTURE & DATA
+       ========================================== -->
+  <script>
+    /* ==========================================
+       1. DATA STRUCTURES & CONFIGURATION
+       ========================================== */
+    const CONFIG = {
+      // Password configuration - change as desired
+      password: "16 january",
+      startDateStr: "2027-01-16"
+    };
+
+    // 365 Notes Pool
+    const NOTES_POOL = [
+      "I love the way you make even the simplest moments feel like absolute magic.",
+      "Just a little reminder that you are my favorite person in every universe.",
+      "Thank you for being my quiet safe place in a noisy world.",
+      "I catch myself smiling at my phone every time your name pops up.",
+      "Your laugh is officially my favorite sound in existence.",
+      "I love us. I love everything we've built and everything we're becoming.",
+      "If I had to choose all over again, I’d choose you in every single lifetime.",
+      "You make my heart feel so incredibly warm and full."
+    ];
+
+    // Memories Data
+    const MEMORIES_DATA = [
+      { id: 1, title: "Our First Late Night Call", date: "16 Jan", caption: "We talked until the sun came up and forgot time existed.", rotation: -3, hiddenClue: true },
+      { id: 2, title: "The Game We Couldn't Stop Playing", date: "02 Feb", caption: "Laughing so hard our cheeks hurt at 2 AM.", rotation: 4 },
+      { id: 3, title: "A Random Tiny Moment", date: "14 Feb", caption: "Nothing special happened, but being with you made it perfect.", rotation: -2 },
+      { id: 4, title: "When Feelings Shifted", date: "28 Feb", caption: "The exact moment I realized you were something truly special.", rotation: 3 }
+    ];
+
+    // Open When Letters
+    const OPEN_WHEN_LETTERS = {
+      miss: "When you miss me, close your eyes for a second. Remember that no matter how many miles or hours are between us, you have a whole piece of my heart with you.",
+      sleep: "If you can't sleep tonight, let your mind rest. Imagine us sitting quietly under a dark night sky, listening to the soft wind.",
+      badday: "On a bad day, please be gentle with yourself. You don't have to be strong all the time. I'm right here beside you.",
+      reassurance: "Whenever you need reassurance: My love for you isn't temporary. It's built deep, like the ocean.",
+      birthday: "HAPPY 18TH BIRTHDAY! You are stepping into a new chapter, and I am so deeply proud of the person you are."
+    };
+
+    // Story Books Data
+    const STORY_BOOKS = {
+      1: {
+        title: "Book I — The Chapter That Found Us",
+        pages: [
+          "How we met and how our story began... It started quietly, like a gentle spark in a vast universe.",
+          "Our first long conversations where hours felt like seconds. We talked about everything and nothing.",
+          "The moment things started feeling different. Feelings shifted soft and slow, like moonlight over water.",
+          "How we kept going through quiet days, misunderstandings, and moments that taught us how to love deeper."
+        ]
+      },
+      2: {
+        title: "Book II — The Place We Are Now",
+        pages: [
+          "Our life right now... Late night calls, inside jokes, and daily routines that mean everything.",
+          "The silly habits, the random screenshots, and the sweet ordinary moments that are very us.",
+          "A cozy personal journal being written day by day, right in this very moment."
+        ]
+      },
+      3: {
+        title: "Book III — My Delulu Version ✨",
+        pages: [
+          "My imagination 😭... The dreamy, random scenarios that pop into my head at 2 AM.",
+          "Imaginary future roadtrips, silly 'what if' moments, and places we haven't explored yet.",
+          "Maybe this part is only in my imagination right now… but I like imagining it with you. ♡"
+        ]
+      }
+    };
+
+    // Voice Notes Data
+    const VOICE_NOTES = [
+      { id: "miss", title: "🎧 For when you miss me", desc: "Press play when you need a little piece of me.", file: "audio/for-when-you-miss-me.mp3" },
+      { id: "night", title: "🌙 A random late-night thought", desc: "I had something on my mind…", file: "audio/random-late-night-thought.mp3" },
+      { id: "bad", title: "🫶 For a bad day", desc: "Maybe this can make today a little softer.", file: "audio/for-a-bad-day.mp3" },
+      { id: "upset", title: "🥺 When you're upset with me", desc: "Press play when you're upset with me.", file: "audio/when-youre-upset.mp3" }
+    ];
+
+    /* ==========================================
+       2. APP STATE & LOCAL STORAGE PERSISTENCE
+       ========================================== */
+    let state = {
+      unlocked: false,
+      openedNotes: JSON.parse(localStorage.getItem("world_opened_notes") || "{}"),
+      currentBook: null,
+      currentBookPage: 0,
+      birthdayStep: 1,
+      secretCluesFound: { clue1: false, clue2: false, clue3: false }
+    };
+
+    /* ==========================================
+       3. NAVIGATION & SCREEN CONTROLLER
+       ========================================== */
+    function navigateTo(screenId) {
+      document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+      
+      const target = document.getElementById(`screen-${screenId.startsWith('room-') ? screenId : (screenId === 'hub' || screenId === 'lock' || screenId === 'entrance' ? screenId : 'room-' + screenId)}`);
+      if (target) {
+        target.classList.add('active');
+      }
+    }
+
+    function lockWorld() {
+      state.unlocked = false;
+      navigateTo('lock');
+    }
+
+    /* ==========================================
+       4. LOCK SCREEN & AUTHENTICATION
+       ========================================== */
+    document.getElementById('lock-unlock-btn').addEventListener('click', attemptUnlock);
+    document.getElementById('lock-pass-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') attemptUnlock();
+    });
+
+    function attemptUnlock() {
+      const val = document.getElementById('lock-pass-input').value.trim().toLowerCase();
+      const err = document.getElementById('lock-error-msg');
+      
+      if (val === CONFIG.password.toLowerCase()) {
+        err.innerText = "";
+        state.unlocked = true;
+        
+        // Cinematic Transition into Entrance
+        document.getElementById('screen-lock').style.opacity = '0';
+        setTimeout(() => {
+          navigateTo('entrance');
+          document.getElementById('screen-lock').style.opacity = '1';
+        }, 800);
+      } else {
+        err.innerText = "Hmm… nice try. 👀 This world isn't for everyone.";
+      }
+    }
+
+    document.getElementById('entrance-enter-btn').addEventListener('click', () => {
+      navigateTo('hub');
+    });
+
+    /* Secret Clue 1 on Entrance */
+    document.getElementById('entrance-star-clue').addEventListener('click', () => {
+      state.secretCluesFound.clue1 = true;
+      showModal("✦ A Tiny Clue Revealed", "<p>You noticed a tiny drifting star... It whispers: <i>'Look closely at the memories we created on Jan 16.'</i></p>");
+    });
+
+    /* ==========================================
+       5. ROOM 1: 365 LITTLE NOTES ENGINE
+       ========================================== */
+    function initNotesRoom() {
+      const container = document.getElementById('notes-archive-container');
+      container.innerHTML = "";
+      
+      // Calculate current day offset from Jan 16 2027 (or fallback prototype offset)
+      const dayNum = 37; // Default prototype day 037
+      document.getElementById('notes-day-indicator').innerText = `DAY ${String(dayNum).padStart(3, '0')} OF 365 ♡`;
+
+      // Render today's note if already opened
+      const todayTrigger = document.getElementById('today-bottle-trigger');
+      todayTrigger.onclick = () => openDailyNote(dayNum);
+
+      // Render archive items
+      for (let d = 1; d <= dayNum; d++) {
+        const item = document.createElement('div');
+        item.className = 'archive-item';
+        item.innerText = `Day ${String(d).padStart(3, '0')} ♡`;
+        item.onclick = () => openDailyNote(d);
+        container.appendChild(item);
+      }
+    }
+
+    function openDailyNote(dayNum) {
+      if (!state.openedNotes[dayNum]) {
+        // Randomly assign note from pool and save permanently
+        const randNote = NOTES_POOL[Math.floor(Math.random() * NOTES_POOL.length)];
+        state.openedNotes[dayNum] = randNote;
+        localStorage.setItem("world_opened_notes", JSON.stringify(state.openedNotes));
+      }
+
+      showModal(`DAY ${String(dayNum).padStart(3, '0')} NOTE`, `<p style="font-size: 1.6rem; text-align: center;">"${state.openedNotes[dayNum]}"</p>`);
+    }
+
+    /* ==========================================
+       6. ROOM 2: TRACKER ENGINE
+       ========================================== */
+    function initTrackerRoom() {
+      const container = document.getElementById('tracker-timeline-nodes');
+      container.innerHTML = `
+        <div class="timeline-node">
+          <div style="font-family: var(--font-heading); color: var(--gold-champagne);">16 JANUARY 2027</div>
+          <div style="font-family: var(--font-script); color: var(--rose-gold); font-size: 1.4rem;">The 365 Notes Year Begins ♡</div>
+        </div>
+        <div class="timeline-node">
+          <div style="font-family: var(--font-heading); color: var(--gold-champagne);">18TH BIRTHDAY</div>
+          <div style="font-family: var(--font-script); color: var(--rose-gold); font-size: 1.4rem;">Reaching the deepest part of our universe ✨</div>
+        </div>
+        <div class="timeline-node">
+          <div style="font-family: var(--font-heading); color: var(--gold-champagne);">FUTURE MILESTONE</div>
+          <div style="font-family: var(--font-script); color: var(--text-muted); font-size: 1.3rem;">Waiting to be written by us...</div>
+        </div>
+      `;
+    }
+
+    /* ==========================================
+       7. ROOM 3: VOICE NOTES ENGINE
+       ========================================== */
+    function initVoiceRoom() {
+      const grid = document.getElementById('voice-cards-grid');
+      grid.innerHTML = "";
+
+      VOICE_NOTES.forEach(v => {
+        const card = document.createElement('div');
+        card.className = 'voice-card';
+        card.innerHTML = `
+          <div style="font-family: var(--font-heading); color: var(--gold-champagne); font-size: 1.1rem;">${v.title}</div>
+          <div style="font-family: var(--font-script); color: var(--text-muted); margin-bottom: 15px;">${v.desc}</div>
+          <div class="waveform-visualizer">
+            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+          </div>
+          <button class="btn-romantic" style="padding: 6px 16px; font-size: 0.75rem;">▶ Play Audio</button>
+        `;
+        card.onclick = () => playVoiceNoteModal(v);
+        grid.appendChild(card);
+      });
+    }
+
+    function playVoiceNoteModal(note) {
+      showModal(note.title, `
+        <div style="text-align: center;">
+          <p style="font-family: var(--font-script); font-size: 1.5rem; margin-bottom: 20px;">"${note.desc}"</p>
+          <audio controls autoplay style="width: 100%; margin-bottom: 15px;">
+            <source src="${note.file}" type="audio/mpeg">
+            Your browser does not support audio playback.
+          </audio>
+          <p style="font-size: 0.85rem; color: var(--ink-burgundy);">You can listen to this whenever you want. ♡</p>
+        </div>
+      `);
+    }
+
+    /* ==========================================
+       8. ROOM 4: OUR MEMORIES SCRAPBOOK
+       ========================================== */
+    function initMemoriesRoom() {
+      const grid = document.getElementById('memories-grid-container');
+      grid.innerHTML = "";
+
+      MEMORIES_DATA.forEach(m => {
+        const card = document.createElement('div');
+        card.className = 'polaroid-card';
+        card.style.setProperty('--rotation', m.rotation);
+        card.innerHTML = `
+          <div class="polaroid-img" style="display:flex; align-items:center; justify-content:center; color:#666; font-family:var(--font-heading); font-size:0.8rem;">
+            [ PHOTO: ${m.title} ]
+          </div>
+          <div class="polaroid-caption">${m.title}</div>
+        `;
+        card.onclick = () => {
+          if (m.hiddenClue) {
+            state.secretCluesFound.clue2 = true;
+            showModal(m.title, `<p>${m.caption}</p><br><p style="color:var(--burgundy-bright); font-size:1rem;">✦ You found Clue II: <i>'Head over to Our Little Corner and look for a tiny planet.'</i></p>`);
+          } else {
+            showModal(m.title, `<p style="font-size: 1.5rem;">${m.caption}</p><br><p style="font-size:0.9rem; text-align:right;">— ${m.date}</p>`);
+          }
+        };
+        grid.appendChild(card);
+      });
+    }
+
+    /* ==========================================
+       9. ROOM 5: OPEN WHEN LETTERS
+       ========================================== */
+    function initOpenWhenRoom() {
+      const grid = document.getElementById('openwhen-grid-container');
+      grid.innerHTML = "";
+
+      const keys = [
+        { id: "miss", title: "💌 Open when you miss me" },
+        { id: "sleep", title: "🌙 Open when you can't sleep" },
+        { id: "badday", title: "🫶 Open when having a bad day" },
+        { id: "reassurance", title: "🥺 Open when you need reassurance" },
+        { id: "birthday", title: "🎂 Open on your birthday" }
+      ];
+
+      keys.forEach(k => {
+        const card = document.createElement('div');
+        card.className = 'envelope-card';
+        card.innerHTML = `
+          <div class="wax-seal">♡</div>
+          <div style="font-family: var(--font-heading); color: var(--gold-champagne); font-size: 1rem;">${k.title}</div>
+        `;
+        card.onclick = () => {
+          showModal(k.title, `<p style="font-size: 1.6rem; text-align: center;">${OPEN_WHEN_LETTERS[k.id]}</p>`);
+        };
+        grid.appendChild(card);
+      });
+    }
+
+    /* ==========================================
+       10. ROOM 6: OUR STORY ENGINE
+       ========================================== */
+    function openBook(bookId) {
+      state.currentBook = bookId;
+      state.currentBookPage = 0;
+      document.getElementById('bookshelf-view').style.display = 'none';
+      document.getElementById('book-reader-view').style.display = 'block';
+      renderBookPage();
+    }
+
+    function closeBook() {
+      document.getElementById('bookshelf-view').style.display = 'flex';
+      document.getElementById('book-reader-view').style.display = 'none';
+    }
+
+    function renderBookPage() {
+      const bData = STORY_BOOKS[state.currentBook];
+      const pageText = bData.pages[state.currentBookPage];
+      
+      document.getElementById('book-page-body').innerHTML = `
+        <div>
+          <h3 style="font-family: var(--font-fancy-heading); color: var(--ink-burgundy); margin-bottom: 15px; border-bottom: 1px solid rgba(88, 12, 31, 0.2); padding-bottom: 5px;">
+            ${bData.title}
+          </h3>
+          <p style="font-size: 1.6rem;">${pageText}</p>
+        </div>
+      `;
+
+      document.getElementById('book-page-num').innerText = `Page ${state.currentBookPage + 1} of ${bData.pages.length}`;
+      document.getElementById('book-prev-btn').style.visibility = state.currentBookPage === 0 ? 'hidden' : 'visible';
+      document.getElementById('book-next-btn').style.visibility = state.currentBookPage === bData.pages.length - 1 ? 'hidden' : 'visible';
+    }
+
+    function changePage(delta) {
+      state.currentBookPage += delta;
+      renderBookPage();
+    }
+
+    /* ==========================================
+       11. ROOM 7: OUR LITTLE CORNER (PLAYROOM)
+       ========================================== */
+    function initCornerRoom() {
+      const grid = document.getElementById('games-grid-container');
+      grid.innerHTML = "";
+
+      const games = [
+        { title: "🎮 Who Knows Us Better?", desc: "A little quiz built for two" },
+        { title: "💭 This or That: Us Edition", desc: "Pick your favorites" },
+        { title: "🎲 Random Us Generator", desc: "Generates a random memory or thought" },
+        { title: "💬 Inside Joke Wall", desc: "A collection of silly moments" }
+      ];
+
+      games.forEach(g => {
+        const card = document.createElement('div');
+        card.className = 'game-card';
+        card.innerHTML = `
+          <div style="font-family: var(--font-heading); color: var(--gold-champagne); font-size: 1.1rem; margin-bottom: 8px;">${g.title}</div>
+          <div style="font-family: var(--font-script); color: var(--text-muted); font-size: 1.2rem;">${g.desc}</div>
+        `;
+        card.onclick = () => showModal(g.title, `<p style="text-align:center;">Interactive game feature ready to play! ♡</p>`);
+        grid.appendChild(card);
+      });
+    }
+
+    function triggerPlanetClue() {
+      state.secretCluesFound.clue3 = true;
+      showModal("🪐 The Secret Planet Speaks", "<p>You found Clue III! <i>'Return to the Main Hub and look for a hidden antique key at the bottom right.'</i></p>");
+    }
+
+    function triggerSecretRiddle() {
+      const answer = prompt("RIDDLE TO UNLOCK THE SECRET ROOM:\n\n'I have no door, yet I can unlock one. I have no voice, yet I can tell you where to go. I’ve been waiting quietly in your little world… Find me, and you’ll know. What am I?'");
+      if (answer && (answer.toLowerCase().includes("key") || answer.includes("🗝️"))) {
+        alert("Correct answer ♡ Welcome to the Secret Room.");
+        navigateTo('secret');
+      } else if (answer) {
+        alert("Not quite right... keep thinking ♡");
+      }
+    }
+
+    /* ==========================================
+       12. ROOM 8: BIRTHDAY ROOM FINALE
+       ========================================== */
+    function startBirthdaySequence() {
+      document.getElementById('bday-step-1').style.display = 'none';
+      document.getElementById('bday-step-cake').style.display = 'block';
+    }
+
+    function blowCandle() {
+      const flame = document.getElementById('cake-candle-flame');
+      flame.classList.add('blown');
+      document.getElementById('candle-controls').style.display = 'none';
+      document.getElementById('cake-cut-controls').style.display = 'block';
+    }
+
+    function cutCake() {
+      document.getElementById('bday-step-cake').style.display = 'none';
+      document.getElementById('bday-step-full').style.display = 'block';
+    }
+
+    function openGiftModal(type) {
+      if (type === 'video') {
+        showModal("🎥 BIRTHDAY VIDEO", `<p style="text-align:center;">[ VIDEO PLAYER: /video/birthday-video.mp4 ]</p>`);
+      } else if (type === 'letter') {
+        showModal("💌 BIRTHDAY MESSAGE", `<p style="font-size:1.6rem; text-align:center;">"Happy 18th Birthday, my love! Watching you grow into the person you are today is my greatest joy. Here's to us, always."</p>`);
+      } else if (type === 'audio') {
+        showModal("🎙️️ ONE LAST THING", `<p style="text-align:center;">[ AUDIO PLAYER: /audio/birthday-final-message.mp3 ]</p>`);
+      }
+    }
+
+    /* ==========================================
+       13. UNIVERSAL MODAL SYSTEM
+       ========================================== */
+    function showModal(title, bodyHtml) {
+      const modal = document.getElementById('universal-modal');
+      const body = document.getElementById('modal-body');
+      body.innerHTML = `
+        <h2 style="font-family: var(--font-fancy-heading); color: var(--ink-burgundy); text-align: center; margin-bottom: 20px;">${title}</h2>
+        <div>${bodyHtml}</div>
+      `;
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('universal-modal').classList.remove('active');
+    }
+
+    /* ==========================================
+       14. AMBIENT BACKGROUND AUDIO CONTROLLER
+       ========================================== */
+    const bgAudio = document.getElementById('bg-ambient-audio');
+    const audioBtn = document.getElementById('audio-toggle-btn');
+    const audioText = document.getElementById('audio-status-text');
+    let isPlaying = false;
+
+    audioBtn.addEventListener('click', () => {
+      if (isPlaying) {
+        bgAudio.pause();
+        audioText.innerText = "Music Off";
+        isPlaying = false;
+      } else {
+        bgAudio.play().then(() => {
+          audioText.innerText = "Music On ♫";
+          isPlaying = true;
+        }).catch(() => {
+          alert("Audio file not found in /audio directory, but toggle activated!");
+        });
+      }
+    });
+
+    /* ==========================================
+       15. CANVAS NIGHT SKY & BUBBLE ANIMATION
+       ========================================== */
+    const canvas = document.getElementById('universe-canvas');
+    const ctx = canvas.getContext('2d');
+    let width, height, particles = [];
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class StarParticle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * 2;
+        this.alpha = Math.random();
+        this.speed = Math.random() * 0.02 + 0.005;
+      }
+      update() {
+        this.alpha += this.speed;
+        if (this.alpha > 1 || this.alpha < 0) this.speed = -this.speed;
+      }
+      draw() {
+        ctx.fillStyle = `rgba(243, 229, 171, ${Math.abs(this.alpha)})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 80; i++) particles.push(new StarParticle());
+
+    function renderUniverse() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(renderUniverse);
+    }
+    renderUniverse();
+
+    /* ==========================================
+       16. INITIALIZATION
+       ========================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      initNotesRoom();
+      initTrackerRoom();
+      initVoiceRoom();
+      initMemoriesRoom();
+      initOpenWhenRoom();
+      initCornerRoom();
+    });
+  </script>
+</body>
+</html>
